@@ -12,7 +12,7 @@ app.use(
 );
 
 app.get('/', (request, response) => {
-    response.json({ info: 'Node.js, Express, and Postgres API'})
+    response.json({ info: 'Node.js, Express, and Postgres API' });
 });
 
 app.listen(port, () => {
@@ -21,3 +21,7 @@ app.listen(port, () => {
 
 app.get('/products', db.getProducts);
 app.get('/products/:id', db.getProductById);
+app.post('/register', db.checkUserExists, db.createUser);
+app.get('/login', (request, response) => {
+    response.json({ info: 'login page' });
+});

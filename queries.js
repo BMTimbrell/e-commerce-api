@@ -28,24 +28,46 @@ const getProductById = (request, response) => {
     });
 };
 
-const createUser = async (request, response) => {
-    const { name, email, password } = request.body;
-
-    const salt = await bcrypt.getSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    pool.query(
-        'INSERT INTO customers (name, email, password) VALUES ($1, $2, $3)', 
-        [name, email, hashedPassword], (error, results) => {
-            if (error) {
-                throw error;
-            }
-            response.status(201).send('Registration Complete!');
+const checkUserExists = (request, response, next) => {
+    const { email } = request.body;
+    pool.query('SELECT * FROM customers WHERE email = $1', [email], (error, results) => {
+        if (error) {
+            throw error;
         }
-    );
+        if (results.rows.length > 0) {
+            console.log('User already exists');
+            return response.redirect("login");
+        }
+        next();
+    });
+};
+
+const createUser = async (request, response) => {
+    const { first_name, last_name, email, password } = request.body;
+
+    try {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        pool.query(
+            'INSERT INTO customers (first_name, last_name, email, password) VALUES ($1, $2, $3, $4)', 
+            [first_name, last_name, email, hashedPassword], (error, results) => {
+                if (error) {
+                    throw error;
+                }
+                console.log('Registration Complete');
+            }
+        );
+
+        response.redirect("login");
+    } catch (err) {
+       response.status(500).json({ message: err.message }); 
+    } 
 };
 
 module.exports = {
     getProducts,
-    getProductById
+    getProductById,
+    checkUserExists,
+    createUser
 };
