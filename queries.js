@@ -65,9 +65,41 @@ const createUser = async (request, response) => {
     } 
 };
 
+const checkUserPassword = (request, response) => {
+    const { email, password } = request.body;
+
+    pool.query('SELECT * FROM customers WHERE email = $1', [email], (error, results) => {
+        if (error) {
+            throw error;
+        }
+        if (results.rows[0].email !== email) {
+            console.log('User does not exist!');
+            return response.status(404).send('User not found');
+        }
+    });
+
+    pool.query(
+        'SELECT password FROM customers WHERE email = $1',
+        [email], async (error, results) => {
+            try {
+                const matchedPassword = await bcrypt.compare(password, results.rows[0].password);
+                if (!matchedPassword) {
+                    console.log('Passwords did not match!');
+                    return response.status(404).send('Incorrect password!');
+                }
+
+                response.status(200).send('Login successful!');
+            } catch (err) {
+                response.status(500).json({ message: err.message }); 
+            }
+        }
+    );
+};
+
 module.exports = {
     getProducts,
     getProductById,
     checkUserExists,
-    createUser
+    createUser,
+    checkUserPassword
 };

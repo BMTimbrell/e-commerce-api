@@ -22,6 +22,7 @@ app.listen(port, () => {
 app.get('/products', db.getProducts);
 app.get('/products/:id', db.getProductById);
 app.post('/register', db.checkUserExists, db.createUser);
+app.post('/login', db.checkUserPassword);
 app.get('/login', (request, response) => {
     response.json({ info: 'login page' });
 });
