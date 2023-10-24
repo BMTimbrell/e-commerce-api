@@ -1,3 +1,6 @@
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+
 const bcrypt = require('bcrypt');
 const Pool = require('pg').Pool;
 const pool = new Pool({
@@ -64,6 +67,36 @@ const createUser = async (request, response) => {
        response.status(500).json({ message: err.message }); 
     } 
 };
+
+passport.use(new LocalStrategy({ usernameField: 'email' }, function verify(email, password, done) {
+    pool.query('SELECT * FROM customers WHERE email = $1', [email], async (error, user) => {
+        if (error) return done(error);
+        if (user.rows < 1) {
+            return done(new Error('User doesn\'t exist!'));
+        }
+
+        //Check passwords match
+        try {
+            const matchedPassword = await bcrypt.compare(password, user.rows[0].password);
+            if (!matchedPassword) return done(new Error('Incorrect password!'));
+            return done(null, user.rows[0]);
+        } catch (e) {
+            return done(e);
+        }
+        
+    });
+}));
+
+passport.serializeUser(function(user, done) {
+    done(null, user.id);
+});
+
+passport.deserializeUser(function (id, done) {
+    pool.query('SELECT * FROM customers WHERE id = $1', [id], (error, results) => {
+        if (error) return done(error);
+        return done(null, results.rows[0]);
+    });
+});
 
 const checkUserPassword = (request, response) => {
     const { email, password } = request.body;
