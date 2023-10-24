@@ -12,12 +12,44 @@ const pool = new Pool({
 });
 
 const getProducts = (request, response) => {
-    pool.query('SELECT * FROM shoes ORDER BY id', (error, results) => {
-        if (error) {
-            throw error;
-        }
-        response.status(200).json(results.rows);
-    });
+    const category = request.query.category;
+    const gender = request.query.gender;
+
+    if (category && gender) {
+        pool.query('SELECT * FROM shoes WHERE category = $1 AND gender = $2 ORDER BY id', 
+            [category, gender], (error, results) => {
+                if (error) {
+                    throw error;
+                }
+                response.status(200).json(results.rows);
+            }
+        );
+    } else if (category) {
+        pool.query('SELECT * FROM shoes WHERE category = $1 ORDER BY id', 
+            [category], (error, results) => {
+                if (error) {
+                    throw error;
+                }
+                response.status(200).json(results.rows);
+            }
+        );
+    } else if (gender) {
+        pool.query('SELECT * FROM shoes WHERE gender = $1 ORDER BY id', 
+            [gender], (error, results) => {
+                if (error) {
+                    throw error;
+                }
+                response.status(200).json(results.rows);
+            }
+        );
+    } else {
+        pool.query('SELECT * FROM shoes ORDER BY id', (error, results) => {
+            if (error) {
+                throw error;
+            }
+            response.status(200).json(results.rows);
+        });
+    } 
 };
 
 const getProductById = (request, response) => {

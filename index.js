@@ -35,8 +35,11 @@ app.listen(port, () => {
     console.log(`App running on port ${port}.`);
 });
 
+//Products endpoints
 app.get('/products', db.getProducts);
 app.get('/products/:id', db.getProductById);
+
+//User endpoints
 app.post('/register', db.checkUserExists, db.createUser);
 app.post('/login', passport.authenticate('local', { failureRedirect: '/login', failureMessage: true }), 
     (req, res) => {
