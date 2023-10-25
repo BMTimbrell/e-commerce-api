@@ -11,6 +11,7 @@ const pool = new Pool({
     port: 5432
 });
 
+//Products queries
 const getProducts = (request, response) => {
     const category = request.query.category;
     const gender = request.query.gender;
@@ -61,6 +62,70 @@ const getProductById = (request, response) => {
         }
         response.status(200).json(results.rows);
     });
+};
+
+//Users queries
+const getUsers = (request, response) => {
+    pool.query('SELECT * FROM customers ORDER BY id', (error, results) => {
+        if (error) {
+            throw error;
+        }
+        response.status(200).json(results.rows);
+    });
+};
+
+const getUsersById = (request, response) => {
+    const id = parseInt(request.params.id);
+
+    pool.query('SELECT * FROM customers WHERE id = $1', [id], (error, results) => {
+        if (error) {
+            throw error;
+        }
+        response.status(200).json(results.rows);
+    });
+}
+
+const updateUser = async (request, response) => {
+    const id = parseInt(request.params.id);
+    const { email, password } = request.body;
+
+    //Update email
+    if (email) {
+        pool.query('SELECT * FROM customers WHERE email = $1', [email], (error, results) => {
+            if (error) {
+                throw error;
+            }
+            if (results.rows.length > 0) {
+                console.log('User already exists');
+                return response.status(403).send('User already exists with this email');
+            }
+        });
+        pool.query('UPDATE customers SET email = $1 WHERE id = $2', [email, id], (error, results) => {
+            if (error) throw error;
+            console.log('Email updated');
+            return response.status(200).json(results.rows[0]);
+        });
+    }
+
+    if (password) {
+        try {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+    
+            pool.query(
+                'UPDATE customers SET password = $1 WHERE id = $2', 
+                [hashedPassword, id], (error, results) => {
+                    if (error) {
+                        throw error;
+                    }
+                }
+            );
+    
+            return response.status(200).send('Password updated');
+        } catch (err) {
+           return response.status(500).json({ message: err.message }); 
+        } 
+    }
 };
 
 const checkUserExists = (request, response, next) => {
@@ -130,7 +195,7 @@ passport.deserializeUser(function (id, done) {
     });
 });
 
-const checkUserPassword = (request, response) => {
+/*const checkUserPassword = (request, response) => {
     const { email, password } = request.body;
 
     pool.query('SELECT * FROM customers WHERE email = $1', [email], (error, results) => {
@@ -159,12 +224,14 @@ const checkUserPassword = (request, response) => {
             }
         }
     );
-};
+};*/
 
 module.exports = {
     getProducts,
     getProductById,
     checkUserExists,
     createUser,
-    checkUserPassword
+    getUsers,
+    getUsersById,
+    updateUser
 };
