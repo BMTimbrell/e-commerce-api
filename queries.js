@@ -257,6 +257,27 @@ const checkPayment = async (request, response) => {
 
 //Orders
 
+const getOrders = (request, response) => {
+    pool.query(
+        'SELECT * FROM orders WHERE customer_id = $1', [request.user.id], (error, results) => {
+        if (error) {
+            throw error;
+        }
+        response.status(200).json(results.rows);
+    });
+};
+
+const getOrdersById = (request, response) => {
+    const order_id = parseInt(request.params.id);
+    pool.query(
+        'SELECT * FROM orders WHERE customer_id = $1 AND id = $2', [request.user.id, order_id], (error, results) => {
+        if (error) {
+            throw error;
+        }
+        response.status(200).json(results.rows);
+    });
+};
+
 module.exports = {
     getProducts,
     getProductById,
@@ -266,5 +287,7 @@ module.exports = {
     getUsersById,
     updateUser,
     createCart,
-    checkPayment
+    checkPayment,
+    getOrders,
+    getOrdersById
 };

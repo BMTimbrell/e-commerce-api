@@ -68,3 +68,7 @@ app.get('/checkout', (request, response) => {
     response.json({info: 'checkout page'});
 });
 app.post('/checkout', db.checkPayment);
+
+//Orders endpoints
+app.get('/orders', db.getOrders);
+app.get('/orders/:id', db.getOrdersById);
