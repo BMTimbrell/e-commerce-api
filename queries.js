@@ -12,6 +12,7 @@ const pool = new Pool({
 });
 
 //Products queries
+
 const getProducts = (request, response) => {
     const category = request.query.category;
     const gender = request.query.gender;
@@ -65,6 +66,7 @@ const getProductById = (request, response) => {
 };
 
 //Users queries
+
 const getUsers = (request, response) => {
     pool.query('SELECT * FROM customers ORDER BY id', (error, results) => {
         if (error) {
@@ -136,7 +138,7 @@ const checkUserExists = (request, response, next) => {
         }
         if (results.rows.length > 0) {
             console.log('User already exists');
-            return response.redirect("login");
+            return response.redirect(303, "login");
         }
         next();
     });
@@ -159,12 +161,13 @@ const createUser = async (request, response) => {
             }
         );
 
-        response.redirect("login");
+        response.redirect(303, "login");
     } catch (err) {
        response.status(500).json({ message: err.message }); 
     } 
 };
 
+//Logging in
 passport.use(new LocalStrategy({ usernameField: 'email' }, function verify(email, password, done) {
     pool.query('SELECT * FROM customers WHERE email = $1', [email], async (error, user) => {
         if (error) return done(error);
@@ -189,11 +192,33 @@ passport.serializeUser(function(user, done) {
 });
 
 passport.deserializeUser(function (id, done) {
-    pool.query('SELECT * FROM customers WHERE id = $1', [id], (error, results) => {
+    pool.query('SELECT id, first_name, last_name, email FROM customers WHERE id = $1', [id], (error, results) => {
         if (error) return done(error);
         return done(null, results.rows[0]);
     });
 });
+
+
+//Cart queries
+
+const createCart = (request, response) => {
+    const { products } = request.body;
+    let totalCost = 0;
+    try {
+        for (const product in products) {
+            totalCost += products[product].price * products[product].quantity;
+        }
+    
+        request.session.cart = {
+            products: products,
+            totalCost: totalCost
+        };
+        return response.redirect(303, "/checkout");
+    } catch (error) {
+        return response.status(400).send(error);
+    }
+};
+
 
 /*const checkUserPassword = (request, response) => {
     const { email, password } = request.body;
@@ -233,5 +258,6 @@ module.exports = {
     createUser,
     getUsers,
     getUsersById,
-    updateUser
+    updateUser,
+    createCart
 };

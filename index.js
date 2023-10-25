@@ -44,7 +44,7 @@ app.post('/register', db.checkUserExists, db.createUser);
 app.post('/login', passport.authenticate('local', { failureRedirect: '/login', failureMessage: true }), 
     (req, res) => {
         console.log('Welcome back, ' + req.user.first_name);
-        res.redirect("../user/" + req.user.id);
+        res.redirect(303, "../user/" + req.user.id);
     }
 );
 app.get('/login', (request, response) => {
@@ -53,3 +53,12 @@ app.get('/login', (request, response) => {
 app.get('/users', db.getUsers);
 app.get('/users/:id', db.getUsersById);
 app.put('/users/:id', db.updateUser);
+
+//Cart endpoints
+app.post('/cart', db.createCart);
+app.get('/cart', (request, response) => {
+    console.log(request.user);
+    console.log(request.session.cart);
+    if (request.session.cart) return response.status(200).send(request.session.cart);
+    else response.status(404).send('Could not find cart');
+});
