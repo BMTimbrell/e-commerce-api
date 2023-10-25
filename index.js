@@ -62,3 +62,9 @@ app.get('/cart', (request, response) => {
     if (request.session.cart) return response.status(200).send(request.session.cart);
     else response.status(404).send('Could not find cart');
 });
+
+//Checkout endpoints
+app.get('/checkout', (request, response) => {
+    response.json({info: 'checkout page'});
+});
+app.post('/checkout', db.checkPayment);

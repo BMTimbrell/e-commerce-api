@@ -199,7 +199,7 @@ passport.deserializeUser(function (id, done) {
 });
 
 
-//Cart queries
+//Cart
 
 const createCart = (request, response) => {
     const { products } = request.body;
@@ -219,37 +219,42 @@ const createCart = (request, response) => {
     }
 };
 
+//Checkout
 
-/*const checkUserPassword = (request, response) => {
-    const { email, password } = request.body;
+const checkPayment = async (request, response) => {
+    if (!request.session.cart || !request.user) 
+        return response.status(400).send('Must be logged in and have a cart');
 
-    pool.query('SELECT * FROM customers WHERE email = $1', [email], (error, results) => {
-        if (error) {
-            throw error;
+    const cartItems = request.session.cart.products;
+    const time = new Date(Date.now()).toISOString().replace('T',' ').replace('Z','');
+    console.log(time);
+    const addOrder = async () => {
+        try {
+            const result = await pool.query(
+                'INSERT INTO orders (customer_id, order_date) VALUES ($1, $2) RETURNING id', [request.user.id, time]
+            );
+            return result.rows[0].id;
+        } catch (error) {
+            return error;
         }
-        if (results.rows[0].email !== email) {
-            console.log('User does not exist!');
-            return response.status(404).send('User not found');
-        }
-    });
-
-    pool.query(
-        'SELECT password FROM customers WHERE email = $1',
-        [email], async (error, results) => {
-            try {
-                const matchedPassword = await bcrypt.compare(password, results.rows[0].password);
-                if (!matchedPassword) {
-                    console.log('Passwords did not match!');
-                    return response.status(404).send('Incorrect password!');
+    };
+    
+        
+    
+    const orderId = await addOrder();
+    for (item in cartItems) {
+        console.log(orderId);
+        pool.query('INSERT INTO orders_shoes (order_id, shoe_id, quantity) VALUES ($1, $2, $3)', [orderId, parseInt(item), cartItems[item].quantity],
+            (error, results) => {
+                if (error) {
+                    throw error;
                 }
-
-                response.status(200).send('Login successful!');
-            } catch (err) {
-                response.status(500).json({ message: err.message }); 
             }
-        }
-    );
-};*/
+        );
+    }
+
+    return response.status(201).send('Payment successful!');
+};
 
 module.exports = {
     getProducts,
@@ -259,5 +264,6 @@ module.exports = {
     getUsers,
     getUsersById,
     updateUser,
-    createCart
+    createCart,
+    checkPayment
 };
