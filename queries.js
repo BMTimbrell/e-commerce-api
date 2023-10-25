@@ -227,11 +227,11 @@ const checkPayment = async (request, response) => {
 
     const cartItems = request.session.cart.products;
     const time = new Date(Date.now()).toISOString().replace('T',' ').replace('Z','');
-    console.log(time);
+
     const addOrder = async () => {
         try {
             const result = await pool.query(
-                'INSERT INTO orders (customer_id, order_date) VALUES ($1, $2) RETURNING id', [request.user.id, time]
+                'INSERT INTO orders (customer_id, order_date, total_cost) VALUES ($1, $2, $3) RETURNING id', [request.user.id, time, request.session.cart.totalCost]
             );
             return result.rows[0].id;
         } catch (error) {
@@ -243,7 +243,6 @@ const checkPayment = async (request, response) => {
     
     const orderId = await addOrder();
     for (item in cartItems) {
-        console.log(orderId);
         pool.query('INSERT INTO orders_shoes (order_id, shoe_id, quantity) VALUES ($1, $2, $3)', [orderId, parseInt(item), cartItems[item].quantity],
             (error, results) => {
                 if (error) {
@@ -255,6 +254,8 @@ const checkPayment = async (request, response) => {
 
     return response.status(201).send('Payment successful!');
 };
+
+//Orders
 
 module.exports = {
     getProducts,
