@@ -258,8 +258,14 @@ const checkPayment = async (request, response) => {
 //Orders
 
 const getOrders = (request, response) => {
-    pool.query(
-        'SELECT * FROM orders WHERE customer_id = $1', [request.user.id], (error, results) => {
+    const query = 'SELECT orders.id, orders.order_date, orders.total_cost, orders_shoes.quantity, shoes.name, shoes.manufacturer, '
+	    + 'shoes.category, shoes.gender, shoes.price, shoes.size '
+        + 'FROM orders '
+        + 'INNER JOIN orders_shoes ON orders_shoes.order_id = orders.id '
+        + 'INNER JOIN shoes ON shoes.id = orders_shoes.shoe_id '
+        + 'WHERE orders.customer_id = $1';
+
+    pool.query(query, [request.user.id], (error, results) => {
         if (error) {
             throw error;
         }
@@ -269,8 +275,14 @@ const getOrders = (request, response) => {
 
 const getOrdersById = (request, response) => {
     const order_id = parseInt(request.params.id);
-    pool.query(
-        'SELECT * FROM orders WHERE customer_id = $1 AND id = $2', [request.user.id, order_id], (error, results) => {
+    const query = 'SELECT orders.id, orders.order_date, orders.total_cost, orders_shoes.quantity, shoes.name, shoes.manufacturer, '
+	    + 'shoes.category, shoes.gender, shoes.price, shoes.size '
+        + 'FROM orders '
+        + 'INNER JOIN orders_shoes ON orders_shoes.order_id = orders.id '
+        + 'INNER JOIN shoes ON shoes.id = orders_shoes.shoe_id '
+        + 'WHERE orders.customer_id = $1 AND orders.id = $2';
+
+    pool.query(query, [request.user.id, order_id], (error, results) => {
         if (error) {
             throw error;
         }
