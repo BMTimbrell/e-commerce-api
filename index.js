@@ -50,6 +50,12 @@ app.post('/login', passport.authenticate('local', { failureRedirect: '/login', f
 app.get('/login', (request, response) => {
     response.json({ info: 'login page' });
 });
+app.get('/logout', (request, response, next) => {
+    request.logout((err) => {
+        if (err) return next(err);
+        response.redirect('../');
+    });
+});
 app.get('/users', db.getUsers);
 app.get('/users/:id', db.getUsersById);
 app.put('/users/:id', db.updateUser);

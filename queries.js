@@ -251,7 +251,7 @@ const checkPayment = async (request, response) => {
             }
         );
     }
-
+    request.session.cart = {};
     return response.status(201).send('Payment successful!');
 };
 
