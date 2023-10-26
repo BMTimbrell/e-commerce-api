@@ -44,7 +44,7 @@ app.post('/register', db.checkUserExists, db.createUser);
 app.post('/login', passport.authenticate('local', { failureRedirect: '/login', failureMessage: true }), 
     (req, res) => {
         console.log('Welcome back, ' + req.user.first_name);
-        res.redirect(303, "../user/" + req.user.id);
+        res.redirect(303, "../users/" + req.user.id);
     }
 );
 app.get('/login', (request, response) => {
