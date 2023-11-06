@@ -1,7 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
-const port = 3000;
+const cors = require('cors');
+const port = 3001;
 const db = require('./queries');
 const passport = require('passport');
 const session = require('express-session');
@@ -13,8 +14,14 @@ app.use(
         cookie: { maxAge: 300000000 },
         saveUninitialized: false,
         resave: false,
+        samesite: 'none'
     })
 );
+
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+}));
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -35,6 +42,15 @@ app.listen(port, () => {
     console.log(`App running on port ${port}.`);
 });
 
+const checkUserMiddleware = (request, response, next) => {
+    if (!request.user) {
+        console.log(request.user);
+        response.status(401).send();
+        return;
+    }
+    next();
+};
+
 //Products endpoints
 app.get('/products', db.getProducts);
 app.get('/products/:id', db.getProductById);
@@ -42,9 +58,11 @@ app.get('/products/:id', db.getProductById);
 //User endpoints
 app.post('/register', db.checkUserExists, db.createUser);
 app.post('/login', passport.authenticate('local', { failureRedirect: '/login', failureMessage: true }), 
-    (req, res) => {
-        console.log('Welcome back, ' + req.user.first_name);
-        res.redirect(303, "../users/" + req.user.id);
+    (request, response) => {
+        console.log('Welcome back, ' + request.user.first_name);
+        response.setHeader('Access-Control-Allow-Credentials', 'true');
+        //response.status(200).json({id: request.user.id});
+        response.redirect(303, "../users/" + request.user.id);
     }
 );
 app.get('/login', (request, response) => {
@@ -53,19 +71,20 @@ app.get('/login', (request, response) => {
 app.get('/logout', (request, response, next) => {
     request.logout((err) => {
         if (err) return next(err);
-        response.redirect('../');
+        response.status(200).json({message: 'logout successful'});
     });
 });
 app.get('/users', db.getUsers);
-app.get('/users/:id', db.getUsersById);
-app.put('/users/:id', db.updateUser);
+app.get('/users/:id', checkUserMiddleware, db.getUsersById);
+app.put('/users/:id', checkUserMiddleware, db.updateUser);
 
 //Cart endpoints
 app.post('/cart', db.createCart);
 app.get('/cart', (request, response) => {
     console.log(request.user);
     console.log(request.session.cart);
-    if (request.session.cart) return response.status(200).send(request.session.cart);
+    if (!request.user) return response.status(401).send();
+    else if (request.session.cart) return response.status(200).send(request.session.cart);
     else response.status(404).send('Could not find cart');
 });
 

@@ -1,14 +1,15 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-
 const bcrypt = require('bcrypt');
+
+require("dotenv").config();
 const Pool = require('pg').Pool;
 const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'shoe_shop',
-    password: 'postgres',
-    port: 5432
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_DATABASE,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT
 });
 
 //Products queries
@@ -78,12 +79,11 @@ const getUsers = (request, response) => {
 
 const getUsersById = (request, response) => {
     const id = parseInt(request.params.id);
-
     pool.query('SELECT * FROM customers WHERE id = $1', [id], (error, results) => {
         if (error) {
             throw error;
         }
-        response.status(200).json(results.rows);
+        return response.status(200).json(results.rows[0]);
     });
 }
 
@@ -188,14 +188,20 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, function verify(email
 }));
 
 passport.serializeUser(function(user, done) {
-    done(null, user.id);
+    done(null, {
+        id: user.id,
+        name: user.first_name,
+        last_name: user.last_name,
+        email: user.email
+    });
 });
 
-passport.deserializeUser(function (id, done) {
-    pool.query('SELECT id, first_name, last_name, email FROM customers WHERE id = $1', [id], (error, results) => {
+passport.deserializeUser(function (user, done) {
+    /*pool.query('SELECT id, first_name, last_name, email FROM customers WHERE id = $1', [id], (error, results) => {
         if (error) return done(error);
         return done(null, results.rows[0]);
-    });
+    });*/
+    done(null, user);
 });
 
 
