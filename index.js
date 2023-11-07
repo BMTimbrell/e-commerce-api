@@ -43,7 +43,9 @@ app.listen(port, () => {
 });
 
 const checkUserMiddleware = (request, response, next) => {
-    if (!request.user) {
+    const id = parseInt(request.params.id);
+
+    if (!request.user || request.user.id !== id) {
         console.log(request.user);
         response.status(401).send();
         return;

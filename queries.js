@@ -144,24 +144,32 @@ const checkUserExists = (request, response, next) => {
     });
 };
 
-const createUser = async (request, response) => {
+const createUser = async (request, response, next) => {
     const { first_name, last_name, email, password } = request.body;
 
     try {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        pool.query(
-            'INSERT INTO customers (first_name, last_name, email, password) VALUES ($1, $2, $3, $4)', 
-            [first_name, last_name, email, hashedPassword], (error, results) => {
-                if (error) {
-                    throw error;
-                }
-                console.log('Registration Complete');
+        const addUser = async () => {
+            try {
+                const result = await pool.query(
+                    'INSERT INTO customers (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING *', 
+                    [first_name, last_name, email, hashedPassword]
+                );
+                return result.rows[0];
+            } catch (error) {
+                return error;
             }
-        );
+        };
 
-        response.redirect(303, "login");
+        const user = await addUser();
+        request.login(user, function(err) {
+            console.log(request.user);
+            if (err) return response.status(500).json({ message: err.message }); 
+            return response.redirect(303, '/users/' + request.user.id);
+        });
+        //response.redirect(303, "login");
     } catch (err) {
        response.status(500).json({ message: err.message }); 
     } 
@@ -188,20 +196,14 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, function verify(email
 }));
 
 passport.serializeUser(function(user, done) {
-    done(null, {
-        id: user.id,
-        name: user.first_name,
-        last_name: user.last_name,
-        email: user.email
-    });
+    done(null, user.id);
 });
 
-passport.deserializeUser(function (user, done) {
-    /*pool.query('SELECT id, first_name, last_name, email FROM customers WHERE id = $1', [id], (error, results) => {
+passport.deserializeUser(function (id, done) {
+    pool.query('SELECT id, first_name, last_name, email FROM customers WHERE id = $1', [id], (error, results) => {
         if (error) return done(error);
         return done(null, results.rows[0]);
-    });*/
-    done(null, user);
+    });
 });
 
 
