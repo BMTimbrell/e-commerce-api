@@ -58,12 +58,13 @@ const getProducts = (request, response) => {
 const getProductById = (request, response) => {
     const id = parseInt(request.params.id);
 
-    const query = 'SELECT shoes.id, shoes.name, shoes.manufacturer, shoes.category, shoes.price, shoes.gender, shoes.image, sizes.size'
-    + 'FROM shoes'
-    + 'INNER JOIN shoes_sizes ON shoes_sizes.shoe_id = shoes.id'
-    + 'INNER JOIN sizes ON sizes.id = shoes_sizes.size_id';
+    const query = 'SELECT shoes.id, shoes.name, shoes.manufacturer, shoes.category, shoes.price, shoes.gender, shoes.image, sizes.size '
+    + 'FROM shoes '
+    + 'INNER JOIN shoes_sizes ON shoes_sizes.shoe_id = shoes.id '
+    + 'INNER JOIN sizes ON sizes.id = shoes_sizes.size_id '
+    + 'WHERE shoes.id = $1';
 
-    pool.query(`${query} WHERE shoes.id = $1`, [id], (error, results) => {
+    pool.query(query, [id], (error, results) => {
         if (error) {
             throw error;
         }
