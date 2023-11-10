@@ -85,10 +85,11 @@ app.post('/cart', db.createCart);
 app.get('/cart', (request, response) => {
     console.log(request.user);
     console.log(request.session.cart);
-    if (!request.user) return response.status(401).send();
-    else if (request.session.cart) return response.status(200).send(request.session.cart);
-    else response.status(404).send('Could not find cart');
+    if (!request.user) return response.status(401).send('You must be signed in.');
+    else if (request.session.cart) return response.status(200).json(request.session.cart);
+    return response.status(404).send();
 });
+app.put('/cart', db.addItemToCart);
 
 //Checkout endpoints
 app.get('/checkout', (request, response) => {

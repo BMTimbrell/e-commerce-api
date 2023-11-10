@@ -22,7 +22,8 @@ const getProducts = (request, response) => {
         pool.query('SELECT * FROM shoes WHERE category = $1 AND gender = $2 ORDER BY id', 
             [category, gender], (error, results) => {
                 if (error) {
-                    throw error;
+                    console.log(error);
+                    return response.status(500).send(error);
                 }
                 response.status(200).json(results.rows);
             }
@@ -31,7 +32,8 @@ const getProducts = (request, response) => {
         pool.query('SELECT * FROM shoes WHERE category = $1 ORDER BY id', 
             [category], (error, results) => {
                 if (error) {
-                    throw error;
+                    console.log(error);
+                    return response.status(500).send(error);
                 }
                 response.status(200).json(results.rows);
             }
@@ -40,7 +42,8 @@ const getProducts = (request, response) => {
         pool.query('SELECT * FROM shoes WHERE gender = $1 ORDER BY id', 
             [gender], (error, results) => {
                 if (error) {
-                    throw error;
+                    console.log(error);
+                    return response.status(500).send(error);
                 }
                 response.status(200).json(results.rows);
             }
@@ -48,7 +51,8 @@ const getProducts = (request, response) => {
     } else {
         pool.query('SELECT * FROM shoes ORDER BY id', (error, results) => {
             if (error) {
-                throw error;
+                console.log(error);
+                return response.status(500).send(error);
             }
             response.status(200).json(results.rows);
         });
@@ -66,7 +70,8 @@ const getProductById = (request, response) => {
 
     pool.query(query, [id], (error, results) => {
         if (error) {
-            throw error;
+            console.log(error);
+            return response.status(500).send(error);
         }
         response.status(200).json(results.rows);
     });
@@ -77,7 +82,8 @@ const getProductById = (request, response) => {
 const getUsers = (request, response) => {
     pool.query('SELECT * FROM customers ORDER BY id', (error, results) => {
         if (error) {
-            throw error;
+            console.log(error);
+            return response.status(500).send(error);
         }
         response.status(200).json(results.rows);
     });
@@ -87,7 +93,8 @@ const getUsersById = (request, response) => {
     const id = parseInt(request.params.id);
     pool.query('SELECT * FROM customers WHERE id = $1', [id], (error, results) => {
         if (error) {
-            throw error;
+            console.log(error);
+            return response.status(500).send(error);
         }
         return response.status(200).json(results.rows[0]);
     });
@@ -101,7 +108,8 @@ const updateUser = async (request, response) => {
     if (email) {
         pool.query('SELECT * FROM customers WHERE email = $1', [email], (error, results) => {
             if (error) {
-                throw error;
+                console.log(error);
+                return response.status(500).send(errror);
             }
             if (results.rows.length > 0) {
                 console.log('User already exists');
@@ -109,7 +117,7 @@ const updateUser = async (request, response) => {
             }
         });
         pool.query('UPDATE customers SET email = $1 WHERE id = $2', [email, id], (error, results) => {
-            if (error) throw error;
+            if (error) return response.status(500).error;
             console.log('Email updated');
             return response.status(200).json(results.rows[0]);
         });
@@ -124,13 +132,15 @@ const updateUser = async (request, response) => {
                 'UPDATE customers SET password = $1 WHERE id = $2', 
                 [hashedPassword, id], (error, results) => {
                     if (error) {
-                        throw error;
+                        console.log(error);
+                        return response.status(500).send(error);
                     }
                 }
             );
     
             return response.status(200).send('Password updated');
         } catch (err) {
+            console.log(err);
            return response.status(500).json({ message: err.message }); 
         } 
     }
@@ -140,7 +150,8 @@ const checkUserExists = (request, response, next) => {
     const { email } = request.body;
     pool.query('SELECT * FROM customers WHERE email = $1', [email], (error, results) => {
         if (error) {
-            throw error;
+            console.log(error);
+            return response.status(500).send(error);
         }
         if (results.rows.length > 0) {
             console.log('User already exists');
@@ -218,6 +229,7 @@ passport.deserializeUser(function (id, done) {
 const createCart = (request, response) => {
     const { products } = request.body;
     let totalCost = 0;
+
     try {
         for (const product in products) {
             totalCost += products[product].price * products[product].quantity;
@@ -227,8 +239,38 @@ const createCart = (request, response) => {
             products: products,
             totalCost: totalCost
         };
-        return response.redirect(303, "/checkout");
+        return response.status(201).json(request.session.cart);
     } catch (error) {
+        console.log(error);
+        return response.status(400).send(error);
+    }
+};
+
+const addItemToCart = (request, response) => {
+    const { id, price } = request.body;
+    let productFound = false;
+
+    try {
+        //Look for product and increment quantity if found
+        for (const product in request.session.cart.products) {
+            if (product == id) {
+                request.session.cart.products[product].quantity++;
+                request.session.cart.totalCost += request.session.cart.products[product].price;
+                productFound = true;
+                break;
+            }
+        }
+
+        if (!productFound) {
+            request.session.cart.products[id] = {
+                price: price,
+                quantity: 1
+            };
+            request.session.cart.totalCost += price;
+        }
+        return response.status(200).json(request.session.cart);
+    } catch (error) {
+        console.log(error);
         return response.status(400).send(error);
     }
 };
@@ -249,6 +291,7 @@ const checkPayment = async (request, response) => {
             );
             return result.rows[0].id;
         } catch (error) {
+            console.log(error);
             return error;
         }
     };
@@ -260,7 +303,8 @@ const checkPayment = async (request, response) => {
         pool.query('INSERT INTO orders_shoes (order_id, shoe_id, quantity) VALUES ($1, $2, $3)', [orderId, parseInt(item), cartItems[item].quantity],
             (error, results) => {
                 if (error) {
-                    throw error;
+                    console.log(error);
+                    return response.status(500).send(error);
                 }
             }
         );
@@ -281,7 +325,8 @@ const getOrders = (request, response) => {
 
     pool.query(query, [request.user.id], (error, results) => {
         if (error) {
-            throw error;
+            console.log(error);
+            return response.status(500).send(error);
         }
         response.status(200).json(results.rows);
     });
@@ -298,7 +343,8 @@ const getOrdersById = (request, response) => {
 
     pool.query(query, [request.user.id, order_id], (error, results) => {
         if (error) {
-            throw error;
+            console.log(error);
+            return response.status(500).send(error);
         }
         response.status(200).json(results.rows);
     });
@@ -313,6 +359,7 @@ module.exports = {
     getUsersById,
     updateUser,
     createCart,
+    addItemToCart,
     checkPayment,
     getOrders,
     getOrdersById
