@@ -231,9 +231,9 @@ const createCart = (request, response) => {
     let totalCost = 0;
 
     try {
-        for (const product in products) {
-            totalCost += products[product].price * products[product].quantity;
-        }
+        products.forEach(product => {
+            totalCost += product.quantity * product.price;
+        });
     
         request.session.cart = {
             products: products,
@@ -247,25 +247,27 @@ const createCart = (request, response) => {
 };
 
 const addItemToCart = (request, response) => {
-    const { id, price } = request.body;
+    const { id, price, size } = request.body;
     let productFound = false;
 
     try {
         //Look for product and increment quantity if found
-        for (const product in request.session.cart.products) {
-            if (product == id) {
-                request.session.cart.products[product].quantity++;
-                request.session.cart.totalCost += request.session.cart.products[product].price;
+        request.session.cart.products.forEach(product => {
+            if (product.id == id && product.size == size) {
+                product.quantity++;
+                request.session.cart.totalCost += price;
                 productFound = true;
-                break;
+                return;
             }
-        }
+        });
 
         if (!productFound) {
-            request.session.cart.products[id] = {
+            request.session.cart.products.push({
+                id: id,
                 price: price,
-                quantity: 1
-            };
+                quantity: 1,
+                size: size
+            });
             request.session.cart.totalCost += price;
         }
         return response.status(200).json(request.session.cart);
@@ -317,7 +319,7 @@ const checkPayment = async (request, response) => {
 
 const getOrders = (request, response) => {
     const query = 'SELECT orders.id, orders.order_date, orders.total_cost, orders_shoes.quantity, shoes.name, shoes.manufacturer, '
-	    + 'shoes.category, shoes.gender, shoes.price, shoes.size '
+	    + 'shoes.category, shoes.gender, shoes.price, order_shoes.size '
         + 'FROM orders '
         + 'INNER JOIN orders_shoes ON orders_shoes.order_id = orders.id '
         + 'INNER JOIN shoes ON shoes.id = orders_shoes.shoe_id '
