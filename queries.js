@@ -236,8 +236,8 @@ const createCart = (request, response) => {
         });
     
         request.session.cart = {
-            products: products,
-            totalCost: totalCost
+            products,
+            totalCost
         };
         return response.status(201).json(request.session.cart);
     } catch (error) {
@@ -247,7 +247,7 @@ const createCart = (request, response) => {
 };
 
 const addItemToCart = (request, response) => {
-    const { id, price, size } = request.body;
+    const { id, price, size, name, image } = request.body;
     let productFound = false;
 
     try {
@@ -263,10 +263,12 @@ const addItemToCart = (request, response) => {
 
         if (!productFound) {
             request.session.cart.products.push({
-                id: id,
-                price: price,
+                id,
+                price,
                 quantity: 1,
-                size: size
+                size,
+                name,
+                image
             });
             request.session.cart.totalCost += price;
         }
