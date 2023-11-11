@@ -55,6 +55,7 @@ const checkUserMiddleware = (request, response, next) => {
 
 //Products endpoints
 app.get('/products', db.getProducts);
+app.get('/products/categories', db.getCategories);
 app.get('/products/:id', db.getProductById);
 
 //User endpoints

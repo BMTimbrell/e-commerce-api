@@ -57,7 +57,6 @@ const getProducts = (request, response) => {
                 console.log(error);
                 return response.status(500).send(error);
             }
-            if (results.rows.length === 0) return response.status(400).send();
             response.status(200).json(results.rows);
         });
     } 
@@ -78,6 +77,16 @@ const getProductById = (request, response) => {
             return response.status(500).send(error);
         }
         if (results.rows.length === 0) return response.status(400).send();
+        response.status(200).json(results.rows);
+    });
+};
+
+const getCategories = (request, response) => {
+    pool.query('SELECT DISTINCT category FROM shoes', (error, results) => {
+        if (error) {
+            console.log(error);
+            return response.status(500).send(error);
+        }
         response.status(200).json(results.rows);
     });
 };
@@ -362,6 +371,7 @@ const getOrdersById = (request, response) => {
 module.exports = {
     getProducts,
     getProductById,
+    getCategories,
     checkUserExists,
     createUser,
     getUsers,
