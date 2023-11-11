@@ -25,6 +25,7 @@ const getProducts = (request, response) => {
                     console.log(error);
                     return response.status(500).send(error);
                 }
+                if (results.rows.length === 0) return response.status(400).send();
                 response.status(200).json(results.rows);
             }
         );
@@ -35,6 +36,7 @@ const getProducts = (request, response) => {
                     console.log(error);
                     return response.status(500).send(error);
                 }
+                if (results.rows.length === 0) return response.status(400).send();
                 response.status(200).json(results.rows);
             }
         );
@@ -45,6 +47,7 @@ const getProducts = (request, response) => {
                     console.log(error);
                     return response.status(500).send(error);
                 }
+                if (results.rows.length === 0) return response.status(400).send();
                 response.status(200).json(results.rows);
             }
         );
@@ -54,6 +57,7 @@ const getProducts = (request, response) => {
                 console.log(error);
                 return response.status(500).send(error);
             }
+            if (results.rows.length === 0) return response.status(400).send();
             response.status(200).json(results.rows);
         });
     } 
@@ -73,6 +77,7 @@ const getProductById = (request, response) => {
             console.log(error);
             return response.status(500).send(error);
         }
+        if (results.rows.length === 0) return response.status(400).send();
         response.status(200).json(results.rows);
     });
 };
