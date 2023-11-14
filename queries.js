@@ -352,12 +352,13 @@ const submitOrder = async (request, response) => {
 //Orders
 
 const getOrders = (request, response) => {
-    const query = 'SELECT orders.id, orders.order_date, orders.total_cost, orders_shoes.quantity, shoes.name, shoes.manufacturer, '
-	    + 'shoes.category, shoes.gender, shoes.price, order_shoes.size '
-        + 'FROM orders '
-        + 'INNER JOIN orders_shoes ON orders_shoes.order_id = orders.id '
-        + 'INNER JOIN shoes ON shoes.id = orders_shoes.shoe_id '
-        + 'WHERE orders.customer_id = $1';
+    const query = 'SELECT orders.id, orders.order_date, orders.total_cost, orders_shoes.quantity, shoes.id AS shoe_id, shoes.name, '
+	+ 'shoes.image, shoes.manufacturer, shoes.price, orders_shoes.size '
+    + 'FROM orders '
+    + 'INNER JOIN orders_shoes ON orders_shoes.order_id = orders.id '
+    + 'INNER JOIN shoes ON shoes.id = orders_shoes.shoe_id '
+    + 'WHERE orders.customer_id = $1 '
+    + 'ORDER BY orders.id';
 
     pool.query(query, [request.user.id], (error, results) => {
         if (error) {
