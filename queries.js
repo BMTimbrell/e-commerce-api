@@ -1,8 +1,9 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
-
 require("dotenv").config();
+const stripe = require('stripe')(process.env.STRIPE_KEY);
+
 const Pool = require('pg').Pool;
 const pool = new Pool({
     user: process.env.DB_USER,
@@ -123,7 +124,7 @@ const updateUser = async (request, response) => {
         pool.query('SELECT * FROM customers WHERE email = $1', [email], (error, results) => {
             if (error) {
                 console.log(error);
-                return response.status(500).send(errror);
+                return response.status(500).send(error);
             }
             if (results.rows.length > 0) {
                 console.log('User already exists');
@@ -295,11 +296,28 @@ const addItemToCart = (request, response) => {
 
 //Checkout
 
-const checkPayment = async (request, response) => {
-    if (!request.session.cart || !request.user) 
-        return response.status(400).send('Must be logged in and have a cart');
+const checkPayment = async (request, response, next) => {
+    const { id, amount} = request.body;
+   
+    try {
+
+        const payment = await stripe.paymentIntents.create({
+            amount,
+            currency: 'gbp',
+            payment_method: id
+        });
+
+        if (payment) next();
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json({ error: error.message });
+    }
+};
+
+const submitOrder = async (request, response) => {
 
     const cartItems = request.session.cart.products;
+
     const time = new Date(Date.now()).toISOString().replace('T',' ').replace('Z','');
 
     const addOrder = async () => {
@@ -317,8 +335,8 @@ const checkPayment = async (request, response) => {
         
     
     const orderId = await addOrder();
-    for (item in cartItems) {
-        pool.query('INSERT INTO orders_shoes (order_id, shoe_id, quantity) VALUES ($1, $2, $3)', [orderId, parseInt(item), cartItems[item].quantity],
+    for (const item of cartItems) {
+        pool.query('INSERT INTO orders_shoes (order_id, shoe_id, quantity, size) VALUES ($1, $2, $3, $4)', [orderId, parseInt(item.id), item.quantity, item.size],
             (error, results) => {
                 if (error) {
                     console.log(error);
@@ -327,8 +345,8 @@ const checkPayment = async (request, response) => {
             }
         );
     }
-    request.session.cart = {};
-    return response.status(201).send('Payment successful!');
+    request.session.cart = null;
+    return response.status(200).json({ message: 'Payment successful!' });
 };
 
 //Orders
@@ -353,7 +371,7 @@ const getOrders = (request, response) => {
 const getOrdersById = (request, response) => {
     const order_id = parseInt(request.params.id);
     const query = 'SELECT orders.id, orders.order_date, orders.total_cost, orders_shoes.quantity, shoes.name, shoes.manufacturer, '
-	    + 'shoes.category, shoes.gender, shoes.price, shoes.size '
+	    + 'shoes.category, shoes.gender, shoes.price, orders_shoes.size '
         + 'FROM orders '
         + 'INNER JOIN orders_shoes ON orders_shoes.order_id = orders.id '
         + 'INNER JOIN shoes ON shoes.id = orders_shoes.shoe_id '
@@ -380,6 +398,7 @@ module.exports = {
     createCart,
     addItemToCart,
     checkPayment,
+    submitOrder,
     getOrders,
     getOrdersById
 };

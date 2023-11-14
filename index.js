@@ -11,7 +11,10 @@ const session = require('express-session');
 app.use(
     session({
         secret: 'asdawac21',
-        cookie: { maxAge: 300000000 },
+        cookie: { 
+            maxAge: 300000000,
+            sameSite: 'lax'
+        },
         saveUninitialized: false,
         resave: false,
         samesite: 'none'
@@ -96,7 +99,7 @@ app.put('/cart', db.addItemToCart);
 app.get('/checkout', (request, response) => {
     response.json({info: 'checkout page'});
 });
-app.post('/checkout', db.checkPayment);
+app.post('/checkout', db.checkPayment, db.submitOrder);
 
 //Orders endpoints
 app.get('/orders', db.getOrders);
