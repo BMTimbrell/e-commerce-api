@@ -67,12 +67,11 @@ app.post('/login', passport.authenticate('local', { failureRedirect: '/login', f
     (request, response) => {
         console.log('Welcome back, ' + request.user.first_name);
         response.setHeader('Access-Control-Allow-Credentials', 'true');
-        //response.status(200).json({id: request.user.id});
         response.redirect(303, "../users/" + request.user.id);
     }
 );
 app.get('/login', (request, response) => {
-    response.json({ info: 'login page' });
+    response.status(401).json({ message: 'login failed' });
 });
 app.get('/logout', (request, response, next) => {
     request.logout((err) => {

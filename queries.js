@@ -211,7 +211,7 @@ const createUser = async (request, response, next) => {
 passport.use(new LocalStrategy({ usernameField: 'email' }, function verify(email, password, done) {
     pool.query('SELECT * FROM customers WHERE email = $1', [email], async (error, user) => {
         if (error) return done(error);
-        if (user.rows < 1) {
+        if (user.rows < 1 ) {
             return done(new Error('User doesn\'t exist!'));
         }
 
