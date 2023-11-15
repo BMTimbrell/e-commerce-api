@@ -117,7 +117,7 @@ const getUsersById = (request, response) => {
 
 const updateUser = async (request, response) => {
     const id = parseInt(request.params.id);
-    const { email, password } = request.body;
+    const { email, password, firstName, lastName } = request.body;
 
     //Update email
     if (email) {
@@ -154,6 +154,44 @@ const updateUser = async (request, response) => {
             );
     
             return response.status(200).send('Password updated');
+        } catch (err) {
+            console.log(err);
+           return response.status(500).json({ message: err.message }); 
+        } 
+    }
+
+    if (firstName) {
+        try {
+            pool.query(
+                'UPDATE customers SET first_name = $1 WHERE id = $2', 
+                [firstName, id], (error, results) => {
+                    if (error) {
+                        console.log(error);
+                        return response.status(500).send(error);
+                    }
+                }
+            );
+    
+            return response.status(200).send('First name updated');
+        } catch (err) {
+            console.log(err);
+           return response.status(500).json({ message: err.message }); 
+        } 
+    }
+
+    if (lastName) {
+        try {
+            pool.query(
+                'UPDATE customers SET last_name = $1 WHERE id = $2', 
+                [lastName, id], (error, results) => {
+                    if (error) {
+                        console.log(error);
+                        return response.status(500).send(error);
+                    }
+                }
+            );
+    
+            return response.status(200).send('Last name updated');
         } catch (err) {
             console.log(err);
            return response.status(500).json({ message: err.message }); 
@@ -375,7 +413,7 @@ const getOrders = (request, response) => {
 const getOrdersById = (request, response) => {
     const order_id = parseInt(request.params.id);
     const query = 'SELECT orders.id, orders.order_date, orders.total_cost, orders_shoes.quantity, '
-	    + 'shoes.name, shoes.manufacturer, shoes.image, shoes.price, orders_shoes.size '
+	    + 'shoes.id AS shoe_id, shoes.name, shoes.manufacturer, shoes.image, shoes.price, orders_shoes.size '
         + 'FROM orders '
         + 'INNER JOIN orders_shoes ON orders_shoes.order_id = orders.id '
         + 'INNER JOIN shoes ON shoes.id = orders_shoes.shoe_id '
