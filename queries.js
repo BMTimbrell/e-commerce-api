@@ -179,6 +179,9 @@ const checkUserExists = (request, response, next) => {
 const createUser = async (request, response, next) => {
     const { first_name, last_name, email, password } = request.body;
 
+    if (!first_name || !last_name || !email || !password) 
+        return response.status(400).json({error: 'Invalid data'});
+
     try {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
