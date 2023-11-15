@@ -374,8 +374,8 @@ const getOrders = (request, response) => {
 
 const getOrdersById = (request, response) => {
     const order_id = parseInt(request.params.id);
-    const query = 'SELECT orders.id, orders.order_date, orders.total_cost, orders_shoes.quantity, shoes.name, shoes.manufacturer, '
-	    + 'shoes.category, shoes.gender, shoes.price, orders_shoes.size '
+    const query = 'SELECT orders.id, orders.order_date, orders.total_cost, orders_shoes.quantity, '
+	    + 'shoes.name, shoes.manufacturer, shoes.image, shoes.price, orders_shoes.size '
         + 'FROM orders '
         + 'INNER JOIN orders_shoes ON orders_shoes.order_id = orders.id '
         + 'INNER JOIN shoes ON shoes.id = orders_shoes.shoe_id '
