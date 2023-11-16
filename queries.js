@@ -119,84 +119,79 @@ const updateUser = async (request, response) => {
     const id = parseInt(request.params.id);
     const { email, password, firstName, lastName } = request.body;
 
+    if (id !== request.user.id) return response.status(401).send();
+
     //Update email
     if (email) {
-        pool.query('SELECT * FROM customers WHERE email = $1', [email], (error, results) => {
-            if (error) {
-                console.log(error);
-                return response.status(500).send(error);
-            }
-            if (results.rows.length > 0) {
-                console.log('User already exists');
+        try {
+            const checkEmailExists = await pool.query(
+                'SELECT * FROM customers WHERE email = $1', [email]
+            );
+            if (checkEmailExists.rows.length > 0) {
+                console.log('User already exists with this email');
                 return response.status(403).send('User already exists with this email');
             }
-        });
-        pool.query('UPDATE customers SET email = $1 WHERE id = $2', [email, id], (error, results) => {
-            if (error) return response.status(500).error;
+        } catch (error) {
+            response.status(500).send(error);
+        }
+        
+        try {
+            const UpdatedEmail = await pool.query(
+                'UPDATE customers SET email = $1 WHERE id = $2', [email, id]
+            );
             console.log('Email updated');
-            return response.status(200).json(results.rows[0]);
-        });
+        } catch (error) {
+            if (error) return response.status(500).error;
+        }
     }
 
+    //Update password
     if (password) {
         try {
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
     
-            pool.query(
+            const updatedPassword = await pool.query(
                 'UPDATE customers SET password = $1 WHERE id = $2', 
-                [hashedPassword, id], (error, results) => {
-                    if (error) {
-                        console.log(error);
-                        return response.status(500).send(error);
-                    }
-                }
+                [hashedPassword, id]
             );
     
-            return response.status(200).send('Password updated');
+            console.log('Password updated');
         } catch (err) {
             console.log(err);
-           return response.status(500).json({ message: err.message }); 
+           return response.status(500).json({message: err.message}); 
         } 
     }
 
     if (firstName) {
         try {
-            pool.query(
+            const updatedFirstName = await pool.query(
                 'UPDATE customers SET first_name = $1 WHERE id = $2', 
-                [firstName, id], (error, results) => {
-                    if (error) {
-                        console.log(error);
-                        return response.status(500).send(error);
-                    }
-                }
+                [firstName, id]
             );
     
-            return response.status(200).send('First name updated');
+           console.log('First name updated');
         } catch (err) {
             console.log(err);
-           return response.status(500).json({ message: err.message }); 
+           return response.status(500).json({message: err.message}); 
         } 
     }
 
     if (lastName) {
         try {
-            pool.query(
+            const updatedLastName = await pool.query(
                 'UPDATE customers SET last_name = $1 WHERE id = $2', 
-                [lastName, id], (error, results) => {
-                    if (error) {
-                        console.log(error);
-                        return response.status(500).send(error);
-                    }
-                }
+                [lastName, id]
             );
     
-            return response.status(200).send('Last name updated');
+            console.log('Last name updated');
         } catch (err) {
             console.log(err);
-           return response.status(500).json({ message: err.message }); 
+           return response.status(500).json({message: err.message}); 
         } 
     }
+
+    return response.status(200).json({message: 'Update Complete!'});
 };
 
 const checkUserExists = (request, response, next) => {
