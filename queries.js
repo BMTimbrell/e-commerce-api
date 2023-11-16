@@ -354,12 +354,10 @@ const submitOrder = async (request, response) => {
 
     const cartItems = request.session.cart.products;
 
-    const time = new Date(Date.now()).toISOString().replace('T',' ').replace('Z','');
-
     const addOrder = async () => {
         try {
             const result = await pool.query(
-                'INSERT INTO orders (customer_id, order_date, total_cost) VALUES ($1, $2, $3) RETURNING id', [request.user.id, time, request.session.cart.totalCost]
+                'INSERT INTO orders (customer_id, order_date, total_cost) VALUES ($1, $2, $3) RETURNING id', [request.user.id, new Date(), request.session.cart.totalCost]
             );
             return result.rows[0].id;
         } catch (error) {
