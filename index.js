@@ -13,7 +13,8 @@ app.use(
         secret: 'asdawac21',
         cookie: { 
             maxAge: 300000000,
-            sameSite: 'lax'
+            sameSite: 'lax',
+            secure: true
         },
         saveUninitialized: false,
         resave: false,
@@ -48,7 +49,7 @@ app.listen(port, () => {
 const checkUserMiddleware = (request, response, next) => {
     const id = parseInt(request.params.id);
 
-    if (!request.user || request.user.id !== id) {
+    if (!request.user || parseInt(request.user.id) !== id) {
         console.log(request.user);
         response.status(401).send();
         return;
