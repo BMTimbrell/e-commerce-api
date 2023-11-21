@@ -22,7 +22,7 @@ app.use(
 );
 
 app.use(cors({
-    origin: 'https://bmtimbrell.github.io/e-commerce-app',
+    origin: ['https://bmtimbrell.github.io', 'http://localhost:3000'],
     credentials: true
 }));
 
