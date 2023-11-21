@@ -13,7 +13,7 @@ app.use(
         secret: 'asdawac21',
         cookie: { 
             maxAge: 300000000,
-            sameSite: 'lax',
+            sameSite: 'none',
             secure: true
         },
         saveUninitialized: false,
