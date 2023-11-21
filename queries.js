@@ -4,13 +4,14 @@ const bcrypt = require('bcrypt');
 require("dotenv").config();
 const stripe = require('stripe')(process.env.STRIPE_KEY);
 
+
 const Pool = require('pg').Pool;
 const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_DATABASE,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT
+    user: process.env.SUPABASE_USER,
+    host: process.env.SUPABASE_HOST,
+    database: process.env.SUPABASE_DB,
+    password: process.env.SUPABASE_PASSWORD,
+    port: process.env.SUPABASE_PORT
 });
 
 //Products queries
@@ -334,6 +335,8 @@ const addItemToCart = (request, response) => {
 
 const checkPayment = async (request, response, next) => {
     const { id, amount} = request.body;
+
+    if (amount <= 0) return request.status(400).send();
    
     try {
 

@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
 const cors = require('cors');
-const port = 3001;
+const port = process.env.PORT || 3001;
 const db = require('./queries');
 const passport = require('passport');
 const session = require('express-session');
@@ -22,7 +22,7 @@ app.use(
 );
 
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: 'https://bmtimbrell.github.io/e-commerce-app',
     credentials: true
 }));
 
