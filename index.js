@@ -7,7 +7,7 @@ const db = require('./queries');
 const passport = require('passport');
 const session = require('express-session');
 
-app.set('trust proxy', 1);
+app.enable('trust proxy');
 
 app.use(
     session({
@@ -17,7 +17,8 @@ app.use(
             sameSite: 'none',
             secure: true
         },
-        resave: false
+        resave: true,
+        saveUninitialized: true
     })
 );
 
@@ -79,7 +80,6 @@ app.get('/logout', (request, response, next) => {
         response.status(200).json({message: 'logout successful'});
     });
 });
-app.get('/users', db.getUsers);
 app.get('/users/:id', checkUserMiddleware, db.getUsersById);
 app.put('/users/:id', checkUserMiddleware, db.updateUser);
 
