@@ -238,7 +238,6 @@ const createUser = async (request, response, next) => {
             if (err) return response.status(500).json({ message: err.message }); 
             return response.redirect(303, '/users/' + request.user.id);
         });
-        //response.redirect(303, "login");
     } catch (err) {
        response.status(500).json({ message: err.message }); 
     } 

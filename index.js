@@ -7,6 +7,7 @@ const db = require('./queries');
 const passport = require('passport');
 const session = require('express-session');
 
+app.set('trust proxy', 1);
 
 app.use(
     session({
@@ -16,14 +17,12 @@ app.use(
             sameSite: 'none',
             secure: true
         },
-        saveUninitialized: false,
-        resave: false,
-        samesite: 'none'
+        resave: false
     })
 );
 
 app.use(cors({
-    origin: ['https://bmtimbrell.github.io', 'http://localhost:3000'],
+    origin: ['https://bmtimbrell.github.io/', 'http://localhost:3000/'],
     credentials: true
 }));
 
