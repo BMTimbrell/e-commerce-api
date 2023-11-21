@@ -22,7 +22,7 @@ app.use(
 );
 
 app.use(cors({
-    origin: ['https://splendid-shoes-app.onrender.com, https://bmtimbrell.github.io', 'http://localhost:3000'],
+    origin: ['https://splendid-shoes.netlify.app, https://bmtimbrell.github.io', 'http://localhost:3000'],
     credentials: true
 }));
 
