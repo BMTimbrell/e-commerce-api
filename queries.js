@@ -120,8 +120,6 @@ const updateUser = async (request, response) => {
     const id = parseInt(request.params.id);
     const { email, password, firstName, lastName } = request.body;
 
-    if (id !== request.user.id) return response.status(401).send();
-
     //Update email
     if (email) {
         try {

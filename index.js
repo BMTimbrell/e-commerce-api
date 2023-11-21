@@ -50,7 +50,7 @@ const checkUserMiddleware = (request, response, next) => {
 
     if (!request.user || parseInt(request.user.id) !== id) {
         console.log(request.user);
-        response.status(401).send();
+        response.status(401).send('You must be logged in as this user to access this resource');
         return;
     }
     next();
