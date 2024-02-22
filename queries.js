@@ -7,11 +7,7 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const Pool = require('pg').Pool;
 const pool = new Pool({
-    user: process.env.SUPABASE_USER,
-    host: process.env.SUPABASE_HOST,
-    database: process.env.SUPABASE_DB,
-    password: process.env.SUPABASE_PASSWORD,
-    port: process.env.SUPABASE_PORT
+    connectionString: process.env.CONNECTION_STRING
 });
 
 //Products queries
